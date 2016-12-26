@@ -18,15 +18,14 @@ mat.plot(data['Close'])
 
 ma50 = mf.movingAverage(50, list(data['Close']))
 mat.plot(ma50)
-print(str(ma50[0]))
 
 ma100 = mf.movingAverage(100, list(data['Close']))
 mat.plot(ma100)
 
-mat.show()
+#mat.show()
 
 #amount, acb, pnl
-# pf = portfolio.portfolio(500)
+pf = portfolio.portfolio(500)
 # pf.printPortfolio()
 
 # pf.buy(10, 1, "AAPL")
@@ -38,3 +37,14 @@ mat.show()
 # pf.sell(20, 3, "AAPL")
 # pf.printPortfolio()
 
+for i in range(100, len(data)):
+	if(ma50[i] - ma100[i] <= 0.001):
+		amountToBuy = int(pf.balance/data['Close'][i])
+		if(amountToBuy > 0):
+			pf.buy(amountToBuy, data['Close'][i], "AAPL")
+	if(ma100[i] - ma50[i] <= 0.001):
+		if("AAPL" in pf.holdings):
+			pf.sell(pf.holdings["AAPL"][0], data['Close'][i], "AAPL")
+
+			
+pf.printPortfolio()
