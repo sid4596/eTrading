@@ -18,13 +18,14 @@ class portfolio:
 			transaction = tr.transaction(1, quantity, rate, ticker)
 			self.transactions.append(transaction)
 			if ticker not in self.holdings:
-				self.holdings[ticker] = [quantity, rate, -1*quantity* rate]
+				self.holdings[ticker] = [quantity, rate, -1*quantity* rate, rate]
 			else:
 				amount = self.holdings[ticker][0]
 				#adjusted cost base
 				acb = self.holdings[ticker][1]
 				pnl = self.holdings[ticker][2]
-				self.holdings[ticker] = [amount+quantity, (rate*quantity+ acb*amount)/(quantity+amount), pnl - quantity* rate]
+				maxrate = self.holdings[ticker][3]
+				self.holdings[ticker] = [amount+quantity, (rate*quantity+ acb*amount)/(quantity+amount), pnl - quantity* rate, maxrate]
 
 	def sell(self, quantity, rate, ticker):
 		#add short selling later
@@ -39,7 +40,8 @@ class portfolio:
 				amount = self.holdings[ticker][0]
 				acb = self.holdings[ticker][1]
 				pnl = self.holdings[ticker][2]
-				self.holdings[ticker] = [amount-quantity, acb, pnl + quantity * rate]
+				maxrate = self.holdings[ticker][3]
+				self.holdings[ticker] = [amount-quantity, acb, pnl + quantity * rate, maxrate]
 
 				if(self.holdings[ticker][0] == 0):
 					del self.holdings[ticker] 
