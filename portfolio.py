@@ -13,7 +13,7 @@ class portfolio:
 	def buy(self, quantity, rate, ticker):
 		#add borrow money later
 		if self.balance - quantity*rate >= 0 :
-			print("Buy:  { Quantity="+str(quantity)+", Rate="+str(rate)+", Ticker"+ticker+"}");
+			print("Buy:  { Quantity="+str(quantity)+", Rate="+str(rate)+", Ticker="+ticker+"}");
 			self.balance -= quantity*rate
 			transaction = tr.transaction(1, quantity, rate, ticker)
 			self.transactions.append(transaction)
@@ -30,7 +30,7 @@ class portfolio:
 		#add short selling later
 		if ticker in self.holdings:
 			if self.holdings[ticker][0] - quantity >= 0 :
-				print("Sell: { Quantity="+str(quantity)+", Rate="+str(rate)+", Ticker="+ticker+"}");
+				print("Sell: { Quantity="+str(quantity)+", Rate="+str(rate)+", Ticker="+ticker+"} Difference: "+str(rate-self.holdings[ticker][1]));
 
 				self.balance += quantity*rate
 				transaction = tr.transaction(0, quantity, rate, ticker)

@@ -10,7 +10,7 @@ def preprocess(filename):
 	data_dropna = data.dropna()
 	data_dropna.to_csv(filename[0:len(filename)-4]+"Clean.csv", sep=',', encoding='utf-8')
 
-filename = "GBPUSD.csv"
+filename = "dataset/GBPUSD.csv"
 preprocess(filename)
 
 data  = pd.read_csv (filename[0:len(filename)-4]+"Clean.csv")
@@ -19,10 +19,9 @@ mat.plot(data['Close'])
 ma50 = mf.movingAverage(50, list(data['Close']))
 mat.plot(ma50)
 
-ma100 = mf.movingAverage(100, list(data['Close']))
+ma100 = mf.movingAverage(200, list(data['Close']))
 mat.plot(ma100)
 
-#mat.show()
 
 #amount, acb, pnl
 pf = portfolio.portfolio(500)
@@ -47,15 +46,23 @@ pf = portfolio.portfolio(500)
 			#pf.sell(pf.holdings["AAPL"][0], data['Close'][i], "AAPL")
 delta = 5
 amountToBuy = 1
-for i in range (100, len(data)):
-	if abs(ma50[i] - ma100[i]) <= 0.01:
+limitSwitch = 0
+
+for i in range (55, len(data)):
+	if abs(ma50[i] - ma100[i]) <= 0.001:
+		print(i)
 		if i-delta >=0 and i+delta < len(ma50):
-			if (ma50[i-delta]-ma50[i+delta] > 0):
+			if (ma50[i-delta]-ma50[i] > 0):
 				if("AAPL" in pf.holdings):
-					pf.sell(pf.holdings["AAPL"][0], data['Close'][i], "AAPL")
+					pf.sell(amountToBuy, data['Close'][i], "AAPL")
 			else:
-				pf.buy(amountToBuy, data['Close'][i], "AAPL")
+				if limitSwitch == 0:
+					pf.buy(amountToBuy, data['Close'][i], "AAPL")
+					limitSwitch = 30
+	if limitSwitch > 0:
+		limitSwitch-=1
 			
 
 			
 pf.printPortfolio()
+mat.show()
