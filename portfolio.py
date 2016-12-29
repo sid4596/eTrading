@@ -2,10 +2,12 @@ import numpy as np
 import mathFunc as mf
 import transaction as tr
 
+
 class portfolio:
 	balance = 0
 	transactions = []	
 	holdings = {}
+
 
 	def __init__(self, balance):
 		self.balance = balance
@@ -13,7 +15,7 @@ class portfolio:
 	def buy(self, quantity, rate, ticker):
 		#add borrow money later
 		if self.balance - quantity*rate >= 0 :
-			print("Buy:  { Quantity="+str(quantity)+", Rate="+str(rate)+", Ticker="+ticker+"}");
+			#print("Buy:  { Quantity="+str(quantity)+", Rate="+str(rate)+", Ticker="+ticker+"}");
 			self.balance -= quantity*rate
 			transaction = tr.transaction(1, quantity, rate, ticker)
 			self.transactions.append(transaction)
@@ -26,12 +28,13 @@ class portfolio:
 				pnl = self.holdings[ticker][2]
 				maxrate = self.holdings[ticker][3]
 				self.holdings[ticker] = [amount+quantity, (rate*quantity+ acb*amount)/(quantity+amount), pnl - quantity* rate, maxrate]
+			return transaction
 
 	def sell(self, quantity, rate, ticker):
 		#add short selling later
 		if ticker in self.holdings:
 			if self.holdings[ticker][0] - quantity >= 0 :
-				print("Sell: { Quantity="+str(quantity)+", Rate="+str(rate)+", Ticker="+ticker+"} Difference: "+str(rate-self.holdings[ticker][1]));
+				#print("Sell: { Quantity="+str(quantity)+", Rate="+str(rate)+", Ticker="+ticker+"} Difference: "+str(rate-self.holdings[ticker][1]));
 
 				self.balance += quantity*rate
 				transaction = tr.transaction(0, quantity, rate, ticker)
