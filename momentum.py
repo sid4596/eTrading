@@ -2,60 +2,82 @@ import mathFunc as mf
 import matplotlib.pyplot as mat
 import portfolio
 	
-def ma (short, long, data, pf):
-	graph = 1
+def ma (short, long, data, pf, ticker):
+	graph = 0
+	debug = 0
+
 	if (graph):
 		mat.plot(data['Close'])
-	ma50 = mf.movingAverage(short, list(data['Close']))
+	
+	maShort = mf.movingAverage(short, list(data['Close']))
 	if (graph):	
-		mat.plot(ma50)
+		mat.plot(maShort)
 
-	ma100 = mf.movingAverage(long, list(data['Close']))
+	maLong = mf.movingAverage(long, list(data['Close']))
 	if (graph):
-		mat.plot(ma100)
+		mat.plot(maLong)
+
 
 	delta = 5
 	amountToBuy = 1
-	limitSwitch = 0
+	buyLimitTimer = 0
+	buyLimitMax = 50
 	threshold = 5
 	stopLimit = 50
 
 	for i in range (min (short, long), len(data)):
-		#print(i)
+		if(debug):
+			print("Day: "+ str(i))
+		
 		#keep track of maximum
-		if("AAPL" in pf.holdings):
-			if(data['Close'][i] > pf.holdings["AAPL"][3]):
-				pf.holdings["AAPL"][3] = data['Close'][i]
+		if(ticker in pf.holdings):
+			if(data['Close'][i] > pf.holdings[ticker][3]):
+				pf.holdings[ticker][3] = data['Close'][i]
+			if(debug):
+				print("New Maximum of {"+ticker+": "+str(pf.holdings[ticker][3])+"}")
 
-		#find stop loss
-		if("AAPL" in pf.holdings):
-			#print("val: "+str((pf.holdings["AAPL"][3] - data['Close'][i])/(pf.holdings["AAPL"][3] - pf.holdings["AAPL"][2])))
-			if data['Close'][i] <=  pf.holdings["AAPL"][3] - stopLimit:
-				#print("Stop loss")
-				pf.sell(pf.holdings["AAPL"][0], data['Close'][i], "AAPL")
+		#check stop loss
+		if(ticker in pf.holdings):
+			if data['Close'][i] <=  pf.holdings[ticker][3] - stopLimit:
+				pf.sell(pf.holdings[ticker][0], data['Close'][i], ticker)
+				if(debug):
+					print("Stop loss reached")
 				if (graph):
 					mat.plot(i, data['Close'][i], 'bo', ms=10, color='b')
-
-		if abs(ma50[i] - ma100[i]) <= threshold:
-			if i-delta >=0 and i+delta < len(ma50):
-				if (ma50[i]-ma50[i-delta]-(ma100[i]-ma100[i-delta]) > 0):
-					if limitSwitch == 0:
-						pf.buy(amountToBuy, data['Close'][i], "AAPL")
+		
+		#check if moving average short crosses moving average long
+		if abs(maShort[i] - maLong[i]) <= threshold:
+			if(debug):
+				print("MA crossing")
+			if i-delta >=0 and i+delta < len(maShort):
+				if (maShort[i]-maShort[i-delta]-(maLong[i]-maLong[i-delta]) > 0):
+					if buyLimitTimer == 0:
+						pf.buy(amountToBuy, data['Close'][i], ticker)
 						if (graph):
 							mat.plot(i, data['Close'][i], 'bo', ms=10, color='g')
-						limitSwitch = 50
-				elif (ma50[i]-ma50[i-delta]-(ma100[i]-ma100[i-delta]) < 0):
-					if("AAPL" in pf.holdings):
-						pf.sell(amountToBuy, data['Close'][i], "AAPL")
+						buyLimitTimer = buyLimitMax
+				elif (maShort[i]-maShort[i-delta]-(maLong[i]-maLong[i-delta]) < 0):
+					if(ticker in pf.holdings):
+						pf.sell(amountToBuy, data['Close'][i], ticker)
 						if (graph):
 							mat.plot(i, data['Close'][i], 'bo', ms=10, color='r')
-		if limitSwitch > 0:
-			limitSwitch-=1
 
-	if("AAPL" in pf.holdings):
-		pf.sell(pf.holdings["AAPL"][0], data['Close'][len(data)-1], "AAPL")
+		#stopper for consecutive purchases
+		if buyLimitTimer > 0:
+			buyLimitTimer-=1
+	
+	#sell all remaining items in portfolio
+	if(ticker in pf.holdings):
+		pf.sell(pf.holdings[ticker][0], data['Close'][len(data)-1], ticker)
+		
 		if (graph):
 			mat.plot(len(data)-1, data['Close'][i], 'bo', ms=10, color='r')
-	pf.printPortfolio()
+	
 	if (graph):
-		mat.show()        
+		mat.grid(True)
+		mat.show()   
+		mat.close()    
+
+	returnbalance = pf.balance
+	return returnbalance
+	

@@ -17,22 +17,31 @@ def preprocess(filename):
 
 datapath = "dataset/"
 files = [f for f in listdir(datapath) if isfile(join(datapath, f)) and f[len(f)-4:len(f)]=='.csv']
-print(files)
 
 list(map(preprocess, files))
 
 datapath = "cleanedData/"
 files = [f for f in listdir(datapath) if isfile(join(datapath, f)) and f[len(f)-4:len(f)]=='.csv']
 
-pf = portfolio.portfolio(50000)
+# pf = portfolio.portfolio(50000)
+# data = pd.read_csv("cleanedData/S&P1Clean.csv")
+# mom.ma (50, 100, data, pf, "AAPL")
 
-#for file in files:
-	#filename = datapath+file
-	#print (filename)
-	#data  = pd.read_csv (filename)
+startingBalance = 50000
+
+for file in files:
+	filename = datapath+file
+	print("="*30)
+	print (filename)
+	print('****Results****')
 	
-	#mom.ma(50, 100, data)
+	data  = pd.read_csv (filename)
+	pf = portfolio.portfolio(startingBalance)
+
+	returnBalance = mom.ma(50, 100, data, pf, "AAPL")
+	difference = returnBalance/startingBalance *100
+	print("Start Balance: "+str(startingBalance))
+	print("End Balance:   "+str(returnBalance))
+	print("Difference:    "+str(difference)+"%")
+
 	
-	
-data = pd.read_csv("cleanedData/S&P1Clean.csv")
-mom.ma (50, 100, data, pf)
