@@ -3,7 +3,7 @@ import matplotlib.pyplot as mat
 import portfolio
 	
 def ma (short, long, data, pf, ticker):
-	graph = 0
+	graph = 1
 	debug = 0
 
 	if (graph):
@@ -58,23 +58,33 @@ def ma (short, long, data, pf, ticker):
 						buyLimitTimer = buyLimitMax
 				elif (maShort[i]-maShort[i-delta]-(maLong[i]-maLong[i-delta]) < 0):
 					if(ticker in pf.holdings):
-						pf.sell(amountToBuy, data['Close'][i], ticker)
+						pf.sell(5, data['Close'][i], ticker)
 						if (graph):
 							mat.plot(i, data['Close'][i], 'bo', ms=10, color='r')
 
 		#stopper for consecutive purchases
 		if buyLimitTimer > 0:
 			buyLimitTimer-=1
-	
+		if(debug):
+			pf.printPortfolio()
+			print()
+
 	#sell all remaining items in portfolio
-	if(ticker in pf.holdings):
-		pf.sell(pf.holdings[ticker][0], data['Close'][len(data)-1], ticker)
-		
+	if( len(pf.holdings) != 0):
+		#pf.sell(pf.holdings[ticker][0], data['Close'][len(data)-1], ticker)
+		endingPrices = {}
+		for ticker in pf.holdings:
+			endingPrices[ticker] = data['Close'][len(data)-1]
+		pf.liquidateAll(endingPrices)
+
 		if (graph):
 			mat.plot(len(data)-1, data['Close'][i], 'bo', ms=10, color='r')
 	
 	if (graph):
 		mat.grid(True)
+		mat.title('Price Action of '+ticker[:len(ticker)-9])
+		mat.ylabel('Price')
+		mat.xlabel('Time')
 		mat.show()   
 		mat.close()    
 

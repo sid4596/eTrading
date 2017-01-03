@@ -11,6 +11,8 @@ class portfolio:
 
 	def __init__(self, balance):
 		self.balance = balance
+		self.holdings = {}
+		self.transactions = []
 
 	def buy(self, quantity, rate, ticker):
 		#add borrow money later
@@ -27,34 +29,59 @@ class portfolio:
 				acb = self.holdings[ticker][1]
 				pnl = self.holdings[ticker][2]
 				maxrate = self.holdings[ticker][3]
-				self.holdings[ticker] = [amount+quantity, (rate*quantity+ acb*amount)/(quantity+amount), pnl - quantity* rate, maxrate]
+				newacb = 0
+				if(quantity + amount != 0):
+					newacb = (rate*quantity+ acb*amount)/(quantity+amount)
+
+				self.holdings[ticker] = [amount+quantity, newacb, pnl - quantity* rate, maxrate]
+		
 			return transaction
 
+		
+
 	def sell(self, quantity, rate, ticker):
-		#add short selling later
-		if ticker in self.holdings:
-			if self.holdings[ticker][0] - quantity >= 0 :
-				#print("Sell: { Quantity="+str(quantity)+", Rate="+str(rate)+", Ticker="+ticker+"} Difference: "+str(rate-self.holdings[ticker][1]));
+		#print("Sell: { Quantity="+str(quantity)+", Rate="+str(rate)+", Ticker="+ticker+"} Difference: "+str(rate-self.holdings[ticker][1]));
+		if(ticker not in self.holdings):
+			self.holdings[ticker] = [0, 0, 0, 0]
 
-				self.balance += quantity*rate
-				transaction = tr.transaction(0, quantity, rate, ticker)
-				self.transactions.append(transaction)
-				
-				amount = self.holdings[ticker][0]
-				acb = self.holdings[ticker][1]
-				pnl = self.holdings[ticker][2]
-				maxrate = self.holdings[ticker][3]
-				self.holdings[ticker] = [amount-quantity, acb, pnl + quantity * rate, maxrate]
+		# if(quantity > self.holdings[ticker][0]):
+		# 	print("Shorting")
 
-				if(self.holdings[ticker][0] == 0):
-					del self.holdings[ticker] 
-		else:
-			print("Can't sell")
+		self.balance += quantity*rate
+		transaction = tr.transaction(0, quantity, rate, ticker)
+		self.transactions.append(transaction)
+		
+		amount = self.holdings[ticker][0]
+		acb = self.holdings[ticker][1]
+		pnl = self.holdings[ticker][2]
+		maxrate = self.holdings[ticker][3]
+		self.holdings[ticker] = [amount-quantity, acb, pnl + quantity * rate, maxrate]
+
+	
+	def liquidateAll(self, endingPrices):
+		for ticker in self.holdings:
+			if(self.holdings[ticker][0] > 0):
+				self.sell(self.holdings[ticker][0], endingPrices[ticker], ticker)
+			elif(self.holdings[ticker][0] < 0):
+				self.buy(self.holdings[ticker][0]*-1, endingPrices[ticker], ticker)
+		self.refreshHoldings()
+
+	def refreshHoldings(self):
+		refreshed = {}
+		for ticker in self.holdings:
+			if(self.holdings[ticker][0] != 0):
+				refreshed[ticker] = self.holdings[ticker]
+
+		self.holdings = refreshed
 
 
 	def printPortfolio(self):
 		print("Balance: "+str(self.balance))
 		print("Holdings: "+str(self.holdings))
 
+	def reset(self):
+		self.balance = 0
+		self.transactions = []	
+		self.holdings = {}
 
 
